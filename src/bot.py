@@ -68,9 +68,7 @@ class TranscriptBot:
         """Trust all devices after each sync (TOFU)."""
         for user_id in self.client.device_store.users:
             for device in self.client.device_store.active_user_devices(user_id):
-                if not self.client.device_store.is_device_verified(device):
-                    self.client.verify_device(device)
-                    logger.debug("Trusted device %s for %s", device.id, user_id)
+                self.client.verify_device(device)
 
     async def _on_invite(self, room, event):
         result = await self.client.join(room.room_id)
