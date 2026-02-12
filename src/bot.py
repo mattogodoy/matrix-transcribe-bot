@@ -14,6 +14,7 @@ from nio import (
     RoomEncryptedVideo,
     RoomMessageAudio,
     RoomMessageVideo,
+    SyncResponse,
 )
 from nio.crypto.attachments import decrypt_attachment
 
@@ -56,20 +57,20 @@ class TranscriptBot:
         self.client.add_event_callback(self.on_audio_message, RoomEncryptedAudio)
         self.client.add_event_callback(self.on_audio_message, RoomEncryptedVideo)
         self.client.add_event_callback(self._on_invite, InviteMemberEvent)
-
-        # Trust all known devices (TOFU)
-        self._trust_all_devices()
+        self.client.add_response_callback(self._on_sync, SyncResponse)
 
         await self.client.sync_forever(timeout=30000)
 
     async def stop(self):
         await self.client.close()
 
-    def _trust_all_devices(self):
+    async def _on_sync(self, response):
+        """Trust all devices after each sync (TOFU)."""
         for user_id in self.client.device_store.users:
             for device in self.client.device_store.active_user_devices(user_id):
                 if not self.client.device_store.is_device_verified(device):
                     self.client.verify_device(device)
+                    logger.debug("Trusted device %s for %s", device.id, user_id)
 
     async def _on_invite(self, room, event):
         result = await self.client.join(room.room_id)
@@ -166,7 +167,9 @@ class TranscriptBot:
                 "key": emoji,
             }
         }
-        response = await self.client.room_send(room_id, "m.reaction", content)
+        response = await self.client.room_send(
+            room_id, "m.reaction", content, ignore_unverified_devices=True
+        )
         if hasattr(response, "event_id"):
             return response.event_id
         return None
@@ -185,4 +188,6 @@ class TranscriptBot:
                 }
             },
         }
-        await self.client.room_send(room_id, "m.room.message", content)
+        await self.client.room_send(
+            room_id, "m.room.message", content, ignore_unverified_devices=True
+        )
