@@ -10,6 +10,8 @@ from nio import (
     InviteMemberEvent,
     JoinResponse,
     LoginResponse,
+    RoomEncryptedAudio,
+    RoomEncryptedVideo,
     RoomMessageAudio,
     RoomMessageVideo,
 )
@@ -51,6 +53,8 @@ class TranscriptBot:
 
         self.client.add_event_callback(self.on_audio_message, RoomMessageAudio)
         self.client.add_event_callback(self.on_audio_message, RoomMessageVideo)
+        self.client.add_event_callback(self.on_audio_message, RoomEncryptedAudio)
+        self.client.add_event_callback(self.on_audio_message, RoomEncryptedVideo)
         self.client.add_event_callback(self._on_invite, InviteMemberEvent)
 
         # Trust all known devices (TOFU)
