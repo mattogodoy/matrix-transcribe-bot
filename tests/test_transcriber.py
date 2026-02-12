@@ -1,4 +1,8 @@
+import sys
 from unittest.mock import MagicMock, patch
+
+# Mock faster_whisper before importing src.transcriber
+sys.modules.setdefault("faster_whisper", MagicMock())
 
 
 class TestTranscriberInit:
