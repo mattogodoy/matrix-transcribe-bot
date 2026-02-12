@@ -104,8 +104,13 @@ class TranscriptBot:
 
             try:
                 loop = asyncio.get_event_loop()
+                start = time.monotonic()
                 text = await loop.run_in_executor(
                     None, self.transcriber.transcribe, audio_path
+                )
+                elapsed = time.monotonic() - start
+                logger.info(
+                    "Transcribed %s in %.1fs", event.event_id, elapsed
                 )
             finally:
                 os.unlink(audio_path)
@@ -115,11 +120,7 @@ class TranscriptBot:
             if not text or not text.strip():
                 await self._reply(room.room_id, event.event_id, "No speech detected.")
             else:
-                await self._reply(
-                    room.room_id,
-                    event.event_id,
-                    f"Transcription:\n\n{text}",
-                )
+                await self._reply(room.room_id, event.event_id, text)
 
         except Exception:
             logger.exception("Transcription failed for %s", event.event_id)

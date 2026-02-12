@@ -117,7 +117,7 @@ class TestReactions:
 
 class TestReplyFormat:
     @pytest.mark.asyncio
-    async def test_reply_contains_transcription_prefix(self, bot):
+    async def test_reply_contains_transcribed_text(self, bot):
         bot._startup_ms = 0
         event = make_audio_event(sender="@user:example.com")
         room = make_room()
@@ -136,7 +136,7 @@ class TestReplyFormat:
         ]
         assert len(message_calls) == 1
         content = message_calls[0][0][2]
-        assert content["body"] == "Transcription:\n\nHola mundo"
+        assert content["body"] == "Hola mundo"
         assert content["m.relates_to"]["m.in_reply_to"]["event_id"] == "$event1"
 
     @pytest.mark.asyncio
