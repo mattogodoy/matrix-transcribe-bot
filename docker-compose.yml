@@ -1,0 +1,8 @@
+services:
+  transcript-bot:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./data/store:/app/store
+      - ./data/models:/app/models
+    env_file: .env
