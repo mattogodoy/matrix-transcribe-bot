@@ -10,13 +10,14 @@ class TestTranscriberInit:
     def test_loads_model_with_correct_params(self, mock_cls):
         from src.transcriber import Transcriber
 
-        Transcriber(model_name="large-v3", language="es", model_dir="/models")
+        Transcriber(model_name="large-v3", language="es", model_dir="/models", cpu_threads=4)
 
         mock_cls.assert_called_once_with(
             "large-v3",
             device="cpu",
             compute_type="int8",
             download_root="/models",
+            cpu_threads=4,
         )
 
     @patch("src.transcriber.WhisperModel")

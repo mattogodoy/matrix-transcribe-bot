@@ -21,6 +21,7 @@ def main():
     whisper_model = os.environ.get("WHISPER_MODEL", "large-v3")
     whisper_language = os.environ.get("WHISPER_LANGUAGE", "es")
     model_dir = os.environ.get("WHISPER_MODEL_DIR", "/app/models")
+    cpu_threads = int(os.environ.get("WHISPER_CPU_THREADS", "0"))
     store_path = os.environ.get("STORE_PATH", "/app/store")
 
     if not all([homeserver, user_id, password]):
@@ -37,6 +38,7 @@ def main():
         model_name=whisper_model,
         language=whisper_language,
         model_dir=model_dir,
+        cpu_threads=cpu_threads,
     )
 
     # Initialize bot
