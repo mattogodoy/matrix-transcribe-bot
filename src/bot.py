@@ -10,12 +10,17 @@ from nio import (
     AsyncClientConfig,
     InviteMemberEvent,
     JoinResponse,
+    KeyVerificationCancel,
+    KeyVerificationKey,
+    KeyVerificationMac,
+    KeyVerificationStart,
     LoginResponse,
     RoomEncryptedAudio,
     RoomEncryptedVideo,
     RoomMessageAudio,
     RoomMessageVideo,
     SyncResponse,
+    ToDeviceError,
 )
 from nio.crypto.attachments import decrypt_attachment
 
@@ -63,6 +68,10 @@ class TranscriptBot:
         self.client.add_event_callback(self.on_audio_message, RoomEncryptedVideo)
         self.client.add_event_callback(self._on_invite, InviteMemberEvent)
         self.client.add_response_callback(self._on_sync, SyncResponse)
+        self.client.add_to_device_callback(self._on_verify_start, KeyVerificationStart)
+        self.client.add_to_device_callback(self._on_verify_key, KeyVerificationKey)
+        self.client.add_to_device_callback(self._on_verify_mac, KeyVerificationMac)
+        self.client.add_to_device_callback(self._on_verify_cancel, KeyVerificationCancel)
 
         await self.client.sync_forever(timeout=30000)
 
@@ -109,6 +118,28 @@ class TranscriptBot:
             logger.info("Joined room %s", room.room_id)
         else:
             logger.error("Failed to join %s: %s", room.room_id, result)
+
+    async def _on_verify_start(self, event):
+        logger.info("Verification request from %s", event.sender)
+        if isinstance(event, KeyVerificationStart):
+            resp = await self.client.accept_key_verification(event.transaction_id)
+            if isinstance(resp, ToDeviceError):
+                logger.error("accept_key_verification failed: %s", resp)
+
+    async def _on_verify_key(self, event):
+        resp = await self.client.confirm_short_auth_string(event.transaction_id)
+        if isinstance(resp, ToDeviceError):
+            logger.error("confirm_short_auth_string failed: %s", resp)
+        else:
+            logger.info("Verification confirmed for %s", event.sender)
+
+    async def _on_verify_mac(self, event):
+        logger.info("Verification completed with %s", event.sender)
+
+    async def _on_verify_cancel(self, event):
+        logger.warning(
+            "Verification cancelled by %s: %s", event.sender, event.reason
+        )
 
     async def on_audio_message(self, room, event):
         # Ignore own messages
