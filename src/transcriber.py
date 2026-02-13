@@ -25,6 +25,11 @@ class Transcriber:
         logger.info("Whisper model loaded (cpu_threads=%s).", cpu_threads or "all")
 
     def transcribe(self, audio_path: str) -> str:
-        segments, _ = self.model.transcribe(audio_path, language=self.language)
+        segments, _ = self.model.transcribe(
+            audio_path,
+            language=self.language,
+            beam_size=1,
+            vad_filter=True,
+        )
         text = " ".join(segment.text.strip() for segment in segments)
         return text

@@ -44,7 +44,9 @@ class TestTranscriberTranscribe:
         t = Transcriber(model_name="tiny", language="es")
         result = t.transcribe("/tmp/audio.ogg")
 
-        model.transcribe.assert_called_once_with("/tmp/audio.ogg", language="es")
+        model.transcribe.assert_called_once_with(
+            "/tmp/audio.ogg", language="es", beam_size=1, vad_filter=True
+        )
         assert result == "Hola mundo esto es una prueba"
 
     @patch("src.transcriber.WhisperModel")
