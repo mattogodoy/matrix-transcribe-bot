@@ -40,6 +40,7 @@ MATRIX_USER_ID=@transcribe-bot:example.com
 MATRIX_PASSWORD=your-bot-password
 WHISPER_MODEL=large-v3
 WHISPER_LANGUAGE=es
+WHISPER_CPU_THREADS=0
 LOG_LEVEL=INFO
 ```
 
@@ -64,6 +65,7 @@ Invite the bot to any room — it will auto-join and start transcribing audio me
 | `MATRIX_PASSWORD` | (required) | Bot account password |
 | `WHISPER_MODEL` | `large-v3` | faster-whisper model name |
 | `WHISPER_LANGUAGE` | `es` | Transcription language code |
+| `WHISPER_CPU_THREADS` | `0` | Number of CPU threads for transcription (0 = all cores) |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
 ## Data persistence
