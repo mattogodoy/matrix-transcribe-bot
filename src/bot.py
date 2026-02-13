@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import tempfile
@@ -41,16 +42,20 @@ class TranscriptBot:
             config=config,
         )
         self.password = password
+        self.store_path = store_path
         self.transcriber = transcriber
         self._startup_ms = int(time.time() * 1000)
+        self._session_file = os.path.join(store_path, "session.json")
 
     async def start(self):
-        response = await self.client.login(self.password)
-        if not isinstance(response, LoginResponse):
-            logger.error("Login failed: %s", response)
-            raise SystemExit(1)
+        if os.path.exists(self._session_file):
+            await self._restore_session()
+        else:
+            await self._fresh_login()
 
-        logger.info("Logged in as %s", self.client.user_id)
+        logger.info(
+            "Logged in as %s (device %s)", self.client.user_id, self.client.device_id
+        )
 
         self.client.add_event_callback(self.on_audio_message, RoomMessageAudio)
         self.client.add_event_callback(self.on_audio_message, RoomMessageVideo)
@@ -60,6 +65,34 @@ class TranscriptBot:
         self.client.add_response_callback(self._on_sync, SyncResponse)
 
         await self.client.sync_forever(timeout=30000)
+
+    async def _fresh_login(self):
+        response = await self.client.login(self.password)
+        if not isinstance(response, LoginResponse):
+            logger.error("Login failed: %s", response)
+            raise SystemExit(1)
+
+        os.makedirs(self.store_path, exist_ok=True)
+        with open(self._session_file, "w") as f:
+            json.dump(
+                {
+                    "access_token": response.access_token,
+                    "device_id": response.device_id,
+                    "user_id": response.user_id,
+                },
+                f,
+            )
+        logger.info("New session saved (device %s)", response.device_id)
+
+    async def _restore_session(self):
+        with open(self._session_file) as f:
+            session = json.load(f)
+
+        self.client.access_token = session["access_token"]
+        self.client.device_id = session["device_id"]
+        self.client.user_id = session["user_id"]
+        self.client.load_store()
+        logger.info("Restored session (device %s)", session["device_id"])
 
     async def stop(self):
         await self.client.close()
