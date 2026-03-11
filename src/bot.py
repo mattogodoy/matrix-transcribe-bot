@@ -16,9 +16,7 @@ from nio import (
     KeyVerificationStart,
     LoginResponse,
     RoomEncryptedAudio,
-    RoomEncryptedVideo,
     RoomMessageAudio,
-    RoomMessageVideo,
     SyncResponse,
     ToDeviceError,
 )
@@ -63,9 +61,7 @@ class TranscriptBot:
         )
 
         self.client.add_event_callback(self.on_audio_message, RoomMessageAudio)
-        self.client.add_event_callback(self.on_audio_message, RoomMessageVideo)
         self.client.add_event_callback(self.on_audio_message, RoomEncryptedAudio)
-        self.client.add_event_callback(self.on_audio_message, RoomEncryptedVideo)
         self.client.add_event_callback(self._on_invite, InviteMemberEvent)
         self.client.add_response_callback(self._on_sync, SyncResponse)
         self.client.add_to_device_callback(self._on_verify_start, KeyVerificationStart)
